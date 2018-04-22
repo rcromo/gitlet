@@ -1,0 +1,80 @@
+# Standard commands and definitions
+> init
+<<<
+# A status log header RE.  Captures the commit id in its sole group.
+D DATE "\d\d\d\d-\d\d-\d\d\s+\d\d:\d\d:\d\d"
+D COMMIT_HEAD "Commit ([a-f0-9]+)[ \t]*\n${DATE}"
+# A full log entry.  Captures the entry. Assume logs messages don't contain
+# ===
+D COMMIT_LOG "(===[ ]*\nCommit [a-f0-9]+[ ]*\n${DATE}[ ]*\n(?:.|\n)*?(?=\Z|\n===))"
+# An arbitrary line of text (works even with ?s)
+D ARBLINE "[^\n]*(?=\n|\Z)"
+# Zero or more arbitrary full lines of text.
+D ARBLINES "(?:(?:.|\n)*(?:\n|\Z)|\A|\Z)"
++ f.txt wug.txt
++ g.txt notwug.txt
+> add g.txt
+<<<
+> add f.txt
+<<<
+> commit "Two files"
+<<<
+> branch other
+<<<
++ h.txt wug2.txt
+> add h.txt
+<<<
+
+> rm g.txt
+<<<
++ f.txt wug2.txt
+> add f.txt
+<<<
+> commit "Add h.txt, remove g.txt, and change f.txt"
+<<<
+> checkout other
+<<<
++ f.txt notwug.txt
+> add f.txt
+<<<
++ k.txt wug3.txt
+> add k.txt
+<<<
+> commit "Add k.txt and modify f.txt"
+<<<
+> checkout master
+<<<
+> log
+===
+${COMMIT_HEAD}
+${ARBLINES}
+<<<*
+D MASTER_HEAD "${1}"
+> merge other
+Encountered a merge conflict.
+<<<
+* g.txt
+= h.txt wug2.txt
+= k.txt wug3.txt
+= f.txt conflict1.txt
+> log
+===
+Commit ${MASTER_HEAD}
+${ARBLINES}
+<<<*
+> status
+=== Branches ===
+\*master
+other
+
+=== Staged Files ===
+k.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+(f\.txt \(modified\)
+)?
+=== Untracked Files ===
+
+<<<*
